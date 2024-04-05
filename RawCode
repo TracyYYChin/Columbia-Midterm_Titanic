@@ -1,0 +1,594 @@
+#**Raw Code**
+
+!pip install matplotlib seaborn
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import LabelEncoder
+# Load the dataset
+file_path = 'Titanic-Dataset.csv'
+titanic_data = pd.read_csv(file_path)
+# Display all column names
+print(titanic_data.columns)
+
+
+# Count missing values per column
+missing_values_count = titanic_data.isnull().sum()
+
+
+# Display the count of missing values for each column
+print(missing_values_count)
+
+
+import pandas as pd
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import LabelEncoder
+
+
+# Assuming titanic_data is your preprocessed DataFrame
+
+
+# For demonstration, let's consider only numeric columns (you should adjust this based on your actual model features)
+numeric_cols = titanic_data.select_dtypes(include=['number']).columns
+
+
+# Optionally, handle missing values for numeric columns. Here we use SimpleImputer as an example
+imputer = SimpleImputer(strategy='mean')
+titanic_data_numeric_imputed = pd.DataFrame(imputer.fit_transform(titanic_data[numeric_cols]), columns=numeric_cols)
+
+
+# Calculate VIF
+vif_data = pd.DataFrame()
+vif_data["feature"] = titanic_data_numeric_imputed.columns
+
+
+# Calculating VIF for each feature
+vif_data["VIF"] = [variance_inflation_factor(titanic_data_numeric_imputed.values, i) for i in range(len(titanic_data_numeric_imputed.columns))]
+
+
+print(vif_data)
+
+
+import pandas as pd
+from sklearn.impute import SimpleImputer
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+
+# Load the dataset
+file_path = 'Titanic-Dataset.csv'
+titanic_data = pd.read_csv(file_path)
+
+
+# Drop the 'PassengerId', 'Ticket', 'Name', and 'Cabin' columns
+titanic_data = titanic_data.drop(['PassengerId', 'Ticket', 'Name', 'Cabin'], axis=1)
+
+
+# For demonstration, let's consider only numeric columns (adjust based on your model features)
+numeric_cols = titanic_data.select_dtypes(include=['number']).columns
+
+
+# Handle missing values for numeric columns using SimpleImputer (mean strategy)
+imputer = SimpleImputer(strategy='mean')
+titanic_data_numeric_imputed = pd.DataFrame(imputer.fit_transform(titanic_data[numeric_cols]), columns=numeric_cols)
+
+
+# Prepare DataFrame for VIF calculation
+vif_data = pd.DataFrame()
+vif_data["feature"] = titanic_data_numeric_imputed.columns
+
+
+# Calculate VIF for each numeric feature
+vif_data["VIF"] = [variance_inflation_factor(titanic_data_numeric_imputed.values, i) for i in range(len(titanic_data_numeric_imputed.columns))]
+
+
+# Display VIF results
+print(vif_data)
+# Dropping the 'Fare' column
+titanic_data = titanic_data.drop(['Fare'], axis=1)
+
+
+# Display the updated DataFrame to confirm the column has been removed
+print(titanic_data.columns)
+
+
+# Dropping the 'Fare' column
+titanic_data = titanic_data.drop(['Fare'], axis=1)
+
+
+# Display the updated DataFrame to confirm the column has been removed
+print(titanic_data.columns)
+
+
+
+
+# 'titanic_data' has already had 'PassengerId', 'Ticket', 'Name', 'Cabin', and 'Fare' dropped
+# Re-load the dataset for the sake of completeness in this standalone example
+file_path = 'Titanic-Dataset.csv'
+titanic_data = pd.read_csv(file_path)
+
+
+# Drop specified columns
+titanic_data.drop(['PassengerId', 'Ticket', 'Name', 'Cabin', 'Fare'], axis=1, inplace=True)
+
+
+# Print the remaining columns
+print("Remaining Columns:", titanic_data.columns.tolist())
+
+
+# Count and display missing values per remaining column
+missing_values_count = titanic_data.isnull().sum()
+print("\nMissing Values Count:")
+print(missing_values_count)
+
+
+# Load the dataset
+file_path = 'Titanic-Dataset.csv'
+titanic_data = pd.read_csv(file_path)
+
+
+# Drop specified columns
+titanic_data.drop(['PassengerId', 'Ticket', 'Name', 'Cabin', 'Fare'], axis=1, inplace=True)
+
+
+# Encode categorical variables as necessary (example for 'Sex' and 'Embarked')
+le = LabelEncoder()
+titanic_data['Sex'] = le.fit_transform(titanic_data['Sex'])
+titanic_data['Embarked'] = le.fit_transform(titanic_data['Embarked'].astype(str))
+
+
+# Separate dataset into rows with missing and non-missing Age values
+age_present = titanic_data[titanic_data['Age'].notnull()]
+age_missing = titanic_data[titanic_data['Age'].isnull()]
+
+
+# Define features and target
+X = age_present.drop('Age', axis=1)
+y = age_present['Age']
+
+
+# Train a Random Forest Regressor
+rf = RandomForestRegressor(n_estimators=100, random_state=42)
+rf.fit(X, y)
+
+
+# Predict missing Age values
+predicted_ages = rf.predict(age_missing.drop('Age', axis=1))
+
+
+# Fill in the missing values in original dataset
+titanic_data.loc[titanic_data['Age'].isnull(), 'Age'] = predicted_ages
+
+
+# Check if there are any missing values left
+print(titanic_data.isnull().sum())
+
+
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+
+
+# Load the dataset
+file_path = 'Titanic-Dataset.csv'
+titanic_data = pd.read_csv(file_path)
+
+
+# Dropping unnecessary columns for simplicity in this example
+titanic_data.drop(['PassengerId', 'Ticket', 'Name', 'Cabin', 'Fare'], axis=1, inplace=True)
+
+
+# Label Encoding for 'Sex'
+le = LabelEncoder()
+titanic_data['Sex'] = le.fit_transform(titanic_data['Sex'])
+
+
+# One-Hot Encoding for 'Embarked'
+# Note: It's good practice to handle missing values before one-hot encoding.
+# Assuming 'Embarked' missing values are filled or there are none.
+ohe = OneHotEncoder(sparse=False, drop='first')  # drop='first' to avoid multicollinearity by dropping one of the new columns
+embarked_encoded = ohe.fit_transform(titanic_data[['Embarked']])
+embarked_encoded_df = pd.DataFrame(embarked_encoded, columns=ohe.get_feature_names_out(['Embarked']))
+
+
+# Concatenate the original DataFrame with the new 'Embarked' one-hot encoded columns
+titanic_data = pd.concat([titanic_data.drop('Embarked', axis=1), embarked_encoded_df], axis=1)
+
+
+# Display the first few rows to verify changes
+print(titanic_data.head())
+
+
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+
+
+# Load the dataset
+file_path = 'Titanic-Dataset.csv'
+titanic_data = pd.read_csv(file_path)
+
+
+# Drop unnecessary columns
+titanic_data.drop(['PassengerId', 'Ticket', 'Name', 'Cabin', 'Fare'], axis=1, inplace=True)
+
+
+# Label Encode the 'Sex' column
+le_sex = LabelEncoder()
+titanic_data['Sex'] = le_sex.fit_transform(titanic_data['Sex'])
+
+
+# Assuming 'Embarked' column exists and needs to be One-Hot Encoded
+# Handle missing values in 'Embarked' if necessary
+titanic_data['Embarked'].fillna('S', inplace=True)  # Example: Filling missing values with 'S' for Southampton
+
+
+# One-Hot Encode the 'Embarked' column
+ohe_embarked = OneHotEncoder(sparse=False, drop='first')  # Dropping one category to avoid multicollinearity
+embarked_encoded = ohe_embarked.fit_transform(titanic_data[['Embarked']])
+embarked_encoded_df = pd.DataFrame(embarked_encoded, columns=ohe_embarked.get_feature_names_out(['Embarked']))
+
+
+# Concatenate the original DataFrame with the encoded 'Embarked' DataFrame
+titanic_data = pd.concat([titanic_data.drop('Embarked', axis=1), embarked_encoded_df], axis=1)
+
+
+# Rename columns as requested
+titanic_data.rename(columns={
+    'Parch': 'Parent/Child',
+    'SibSp': 'Sibling/Spouse',
+    'Sex': 'Gender',
+    'Embarked_Q': 'Queenstown',
+    'Embarked_S': 'Southampton'
+}, inplace=True)
+
+
+# Display the first few rows of the processed table
+print(titanic_data.head())
+
+
+# Calculate Pearson correlation matrix
+pearson_corr_matrix = titanic_data.corr(method='pearson')
+print("Pearson Correlation Matrix:\n", pearson_corr_matrix)
+
+
+# Calculate Spearman correlation matrix
+spearman_corr_matrix = titanic_data.corr(method='spearman')
+print("\nSpearman Correlation Matrix:\n", spearman_corr_matrix)
+
+
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+
+# Imputing missing values for all numeric columns
+numeric_features = X_train.select_dtypes(include=['int64', 'float64']).columns
+numeric_transformer = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='median')),
+    ('scaler', StandardScaler())])
+
+
+# Apply transformations only to numeric features
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', numeric_transformer, numeric_features)])
+
+
+# Define the model
+model = RandomForestClassifier(random_state=42)
+
+
+# Create a full pipeline with both preprocessor and model
+clf = Pipeline(steps=[('preprocessor', preprocessor),
+                      ('model', model)])
+
+
+# Setting up parameter grid for the model in the pipeline
+param_grid = {
+    'model__n_estimators': [100, 200],
+    'model__max_depth': [None, 5, 10],
+    'model__min_samples_split': [2, 5],
+    'model__min_samples_leaf': [1, 2]
+}
+
+
+# Setting up GridSearchCV with the pipeline
+grid_search = GridSearchCV(clf, param_grid, cv=5, scoring='accuracy', n_jobs=-1)
+
+
+# Fitting GridSearchCV to the training data
+grid_search.fit(X_train, y_train)
+
+
+# Print the best parameters and the best score from GridSearch
+print("Best Parameters:", grid_search.best_params_)
+print("Best Cross-Validation Score:", grid_search.best_score_)
+
+
+# Evaluate the best model on the test set
+test_accuracy = grid_search.score(X_test, y_test)
+print("Test Accuracy:", test_accuracy)
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.impute import SimpleImputer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+
+# Splitting dataset into features and target variable
+X = titanic_data.drop(['Survived'], axis=1)
+y = titanic_data['Survived']
+
+
+# Splitting dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+# Identifying numerical and categorical columns
+num_cols = X_train.select_dtypes(include=['int64', 'float64']).columns
+cat_cols = X_train.select_dtypes(include=['object', 'category']).columns
+
+
+# Creating column transformers for imputing missing values
+# Numeric features
+num_transformer = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='median')),
+    ('scaler', StandardScaler())])
+
+
+# Categorical features
+cat_transformer = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='most_frequent')),
+    ('onehot', OneHotEncoder(handle_unknown='ignore'))])
+
+
+# Bundling preprocessing for numerical and categorical data
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', num_transformer, num_cols),
+        ('cat', cat_transformer, cat_cols)])
+
+
+# Creating a preprocessing and training pipeline
+pipeline = Pipeline(steps=[('preprocessor', preprocessor),
+                           ('classifier', RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42))])
+
+
+# Fitting the pipeline to the training data
+pipeline.fit(X_train, y_train)
+
+
+# Predicting on the test data
+y_pred = pipeline.predict(X_test)
+
+
+# Calculating the accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print("Test Accuracy:", accuracy)
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from xgboost import XGBClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.pipeline import make_pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+
+# Load and preprocess the Titanic dataset
+file_path = 'Titanic-Dataset.csv'
+titanic_data = pd.read_csv(file_path)
+
+
+# Encode 'Sex' and 'Embarked' using LabelEncoder for simplicity
+le = LabelEncoder()
+titanic_data['Sex'] = le.fit_transform(titanic_data['Sex'])
+titanic_data['Embarked'] = le.fit_transform(titanic_data['Embarked'].fillna('S'))
+
+
+# Define features and target
+X = titanic_data.drop(['Survived', 'PassengerId', 'Ticket', 'Name', 'Cabin', 'Fare'], axis=1)
+y = titanic_data['Survived']
+
+
+# Splitting dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+# Preprocessing for numeric features: imputation + scaling
+numeric_features = ['Age', 'SibSp', 'Parch']
+numeric_transformer = make_pipeline(SimpleImputer(strategy='median'), StandardScaler())
+
+
+# Preprocessing for categorical features: imputation + one hot encoding
+categorical_features = ['Pclass', 'Sex', 'Embarked']
+categorical_transformer = make_pipeline(SimpleImputer(strategy='most_frequent'), OneHotEncoder(handle_unknown='ignore'))
+
+
+# Bundle preprocessing for numeric and categorical data
+preprocessor = ColumnTransformer(transformers=[
+    ('num', numeric_transformer, numeric_features),
+    ('cat', categorical_transformer, categorical_features)])
+
+
+# Models to train
+models = {
+    'XGBoost': XGBClassifier(use_label_encoder=False, eval_metric='logloss'),
+    'SVM': SVC(),
+    'LogisticRegression': LogisticRegression(),
+    'DecisionTree': DecisionTreeClassifier()
+}
+
+
+for name, model in models.items():
+    # Create a pipeline
+    pipeline = make_pipeline(preprocessor, model)
+   
+    # Train the model
+    pipeline.fit(X_train, y_train)
+   
+    # Make predictions
+    y_pred = pipeline.predict(X_test)
+   
+    # Print accuracy
+    print(f'{name} Accuracy:', accuracy_score(y_test, y_pred))
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score, roc_curve, auc
+import matplotlib.pyplot as plt
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import make_pipeline
+from xgboost import XGBClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+
+
+# Define X (features) and y (target)
+X = titanic_data.drop(['Survived'], axis=1)
+y = titanic_data['Survived']
+
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+# Define the preprocessing steps
+numeric_features = ['Age', 'SibSp', 'Parch']
+numeric_transformer = make_pipeline(SimpleImputer(strategy='median'), StandardScaler())
+
+
+categorical_features = ['Pclass', 'Sex', 'Embarked']
+categorical_transformer = make_pipeline(SimpleImputer(strategy='most_frequent'), OneHotEncoder(handle_unknown='ignore'))
+
+
+preprocessor = ColumnTransformer(transformers=[
+    ('num', numeric_transformer, numeric_features),
+    ('cat', categorical_transformer, categorical_features)])
+
+
+# Models to train
+models = {
+    'XGBoost': XGBClassifier(use_label_encoder=False, eval_metric='logloss'),
+    'SVM': SVC(probability=True),  # Enable probability for ROC AUC score
+    'LogisticRegression': LogisticRegression(max_iter=1000),
+    'DecisionTree': DecisionTreeClassifier()
+}
+
+
+# Plot ROC curve and calculate AUC for each model
+plt.figure(figsize=(10, 8))
+
+
+for name, model in models.items():
+    pipeline = make_pipeline(preprocessor, model)
+    pipeline.fit(X_train, y_train)
+   
+    if hasattr(pipeline[-1], "predict_proba"):
+        y_score = pipeline.predict_proba(X_test)[:, 1]
+    else:  # Use decision function if predict_proba is not available
+        y_score = pipeline.decision_function(X_test)
+   
+    fpr, tpr, _ = roc_curve(y_test, y_score)
+    roc_auc = auc(fpr, tpr)
+   
+    plt.plot(fpr, tpr, lw=2, label=f'{name} (area = {roc_auc:.2f})')
+
+
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--', label='Chance')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve')
+plt.legend(loc='lower right')
+plt.show()
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score
+from xgboost import XGBClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+
+
+# Assuming 'titanic_data' is your DataFrame after preprocessing
+# Ensure the target variable 'Survived' is not dropped if it's what you're predicting
+
+
+X = titanic_data.drop('Survived', axis=1)
+y = titanic_data['Survived']
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+# Preprocessor pipeline
+numeric_features = X.select_dtypes(include=['int64', 'float64']).columns
+categorical_features = X.select_dtypes(include=['object', 'bool']).columns
+
+
+numeric_transformer = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='median')),
+    ('scaler', StandardScaler())])
+
+
+categorical_transformer = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='most_frequent')),
+    ('onehot', OneHotEncoder(handle_unknown='ignore'))])
+
+
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', numeric_transformer, numeric_features),
+        ('cat', categorical_transformer, categorical_features)])
+
+
+# Initializing models
+models = {
+    'RandomForest': RandomForestClassifier(n_estimators=100, random_state=42),
+    'XGBoost': XGBClassifier(use_label_encoder=False, eval_metric='logloss'),
+    'SVM': SVC(probability=True, random_state=42),
+    'LogisticRegression': LogisticRegression(max_iter=1000, random_state=42),
+    'DecisionTree': DecisionTreeClassifier(random_state=42)
+}
+
+
+for name, model in models.items():
+    # Create and fit the pipeline for each model
+    pipeline = Pipeline(steps=[('preprocessor', preprocessor),
+                               ('classifier', model)])
+    pipeline.fit(X_train, y_train)
+   
+    # Predict probabilities
+    if hasattr(pipeline[-1], 'predict_proba'):
+        y_scores = pipeline.predict_proba(X_test)[:, 1]
+    else:  # Use decision function for models like SVM
+        y_scores = pipeline.decision_function(X_test)
+   
+    # Compute ROC AUC score
+    roc_auc = roc_auc_score(y_test, y_scores)
+    print(f'{name} ROC AUC Score: {roc_auc:.4f}')
+
+
+
+
+
